@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de las Partes de la Computadora</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e0f7fa;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .contenedor-juego {
+            background-color: white;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border: 4px solid #00acc1;
+        }
+        h1 {
+            color: #00796b;
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        #contador {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #00796b;
+            background-color: #e0f2f1;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .pantalla-imagen {
+            background-color: #fffde7;
+            border: 3px dashed #fbc02d;
+            border-radius: 15px;
+            width: 200px;
+            height: 200px;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pantalla-imagen svg {
+            width: 85%;
+            height: 85%;
+        }
+        .opciones-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-opcion {
+            background-color: #f1f8e9;
+            border: 3px solid #7cb342;
+            color: #2e7d32;
+            padding: 12px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        .btn-opcion:hover {
+            transform: scale(1.02);
+            background-color: #e8f5e9;
+        }
+        .correcto {
+            background-color: #c8e6c9 !important;
+            border-color: #4caf50 !important;
+            color: #1b5e20 !important;
+        }
+        .incorrecto {
+            background-color: #ffcdd2 !important;
+            border-color: #f44336 !important;
+            color: #b71c1c !important;
+        }
+        .oculto {
+            display: none;
+        }
+        #pantalla-final h2 {
+            color: #ff1267;
+            font-size: 2.2rem;
+        }
+        .btn-reiniciar {
+            background-color: #00796b;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .btn-reiniciar:hover {
+            background-color: #004d40;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor-juego">
+        <div id="pantalla-juego">
+            <h1>¿QUÉ PARTE ES? 🤔</h1>
+            <div id="contador">Pregunta: 1 / 20</div>
+            
+            <div class="pantalla-imagen" id="contenedor-svg"></div>
+            
+            <div class="opciones-container" id="contenedor-botones"></div>
+        </div>
+
+        <div id="pantalla-final" class="oculto">
+            <h2>🎉 ¡JUEGO TERMINADO! 🎉</h2>
+            <p style="font-size: 1.4rem; color: #00796b;">¡Respondiste las 20 preguntas!</p>
+            <p style="font-size: 1.2rem; color: #555;">Eres un experto en computación.</p>
+            <span style="font-size: 4rem;">🏆🥇🎈🌟</span>
+            <br>
+            <button class="btn-reiniciar" onclick="reiniciarJuego()">Volver a jugar</button>
+        </div>
+    </div>
+
+    <script>
+        const SVGS = {
+            monitor: `<svg viewBox="0 0 100 100"><rect x="10" y="15" width="80" height="50" rx="4" fill="#37474F"/><rect x="14" y="19" width="72" height="42" fill="#BBDEFB"/><polygon points="40,65 60,65 65,80 35,80" fill="#455A64"/><rect x="30" y="80" width="40" height="4" fill="#263238" rx="2"/></svg>`,
+            mouse: `<svg viewBox="0 0 100 100"><rect x="30" y="25" width="40" height="60" rx="20" fill="#78909C"/><line x1="50" y1="25" x2="50" y2="50" stroke="#455A64" stroke-width="2"/><line x1="30" y1="50" x2="70" y2="50" stroke="#455A64" stroke-width="2"/><rect x="47" y="35" width="6" height="10" rx="3" fill="#FF5252"/></svg>`,
+            teclado: `<svg viewBox="0 0 100 100"><rect x="5" y="35" width="90" height="32" rx="5" fill="#546E7A"/><rect x="12" y="41" width="12" height="7" rx="1" fill="#ECEFF1"/><rect x="28" y="41" width="12" height="7" rx="1" fill="#ECEFF1"/><rect x="44" y="41" width="12" height="7" rx="1" fill="#ECEFF1"/><rect x="60" y="41" width="12" height="7" rx="1" fill="#ECEFF1"/><rect x="20" y="53" width="50" height="7" rx="1" fill="#ECEFF1"/></svg>`,
+            cpu: `<svg viewBox="0 0 100 100"><rect x="25" y="10" width="50" height="80" rx="5" fill="#37474F"/><rect x="32" y="18" width="36" height="8" rx="2" fill="#212121"/><circle cx="50" cy="45" r="5" fill="#FFC107"/><circle cx="50" cy="71" r="12" fill="#263238"/></svg>`,
+            impresora: `<svg viewBox="0 0 100 100"><rect x="25" y="20" width="50" height="20" fill="#B0BEC5"/><rect x="15" y="35" width="70" height="35" fill="#546E7A" rx="4"/><rect x="25" y="55" width="50" height="23" fill="#FFFFFF"/><line x1="35" y1="63" x2="65" y2="63" stroke="#37474F" stroke-width="3"/></svg>`,
+            parlantes: `<svg viewBox="0 0 100 100"><rect x="32" y="15" width="36" height="70" rx="5" fill="#263238"/><circle cx="50" cy="35" r="10" fill="#37474F"/><circle cx="50" cy="35" r="4" fill="#78909C"/><circle cx="50" cy="65" r="14" fill="#37474F"/><circle cx="50" cy="65" r="6" fill="#78909C"/></svg>`,
+            auriculares: `<svg viewBox="0 0 100 100"><path d="M20,50 Q20,15 50,15 Q80,15 80,50" fill="none" stroke="#37474F" stroke-width="6" stroke-linecap="round"/><rect x="12" y="45" width="14" height="25" rx="5" fill="#FF5252"/><rect x="74" y="45" width="14" height="25" rx="5" fill="#FF5252"/></svg>`,
+            camara: `<svg viewBox="0 0 100 100"><rect x="20" y="30" width="60" height="45" rx="8" fill="#455A64"/><circle cx="50" cy="52" r="18" fill="#263238"/><circle cx="50" cy="52" r="8" fill="#00E5FF"/><rect x="32" y="20" width="15" height="10" fill="#37474F"/></svg>`,
+            usb: `<svg viewBox="0 0 100 100"><rect x="38" y="40" width="24" height="45" rx="3" fill="#37474F"/><rect x="42" y="15" width="16" height="25" fill="#CFD8DC" stroke="#90A4AE" stroke-width="2"/><rect x="46" y="20" width="3" height="5" fill="#37474F"/><rect x="52" y="20" width="3" height="5" fill="#37474F"/></svg>`,
+            laptop: `<svg viewBox="0 0 100 100"><polygon points="20,20 80,20 75,65 25,65" fill="#37474F"/><rect x="24" y="23" width="52" height="38" fill="#E0F7FA"/><polygon points="10,65 90,65 85,80 15,80" fill="#78909C"/><rect x="40" y="67" width="20" height="8" fill="#546E7A"/></svg>`,
+            microfono: `<svg viewBox="0 0 100 100"><rect x="42" y="20" width="16" height="40" rx="8" fill="#546E7A"/><rect x="35" y="40" width="30" height="20" fill="none" stroke="#37474F" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="60" x2="50" y2="80" stroke="#37474F" stroke-width="5"/><rect x="35" y="80" width="30" height="6" fill="#263238"/></svg>`,
+            disco: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#ECEFF1" stroke="#B0BEC5" stroke-width="2"/><circle cx="50" cy="50" r="12" fill="#FFFFFF" stroke="#B0BEC5" stroke-width="2"/><circle cx="50" cy="50" r="4" fill="#78909C"/><path d="M20,50 A30,30 0 0,1 80,50" fill="none" stroke="#26A69A" stroke-width="2" stroke-dasharray="5,5"/></svg>`,
+            tablet: `<svg viewBox="0 0 100 100"><rect x="15" y="10" width="70" height="80" rx="8" fill="#37474F"/><rect x="20" y="16" width="60" height="68" fill="#FFFDE7"/><circle cx="50" cy="86" r="2.5" fill="#ECEFF1"/></svg>`,
+            router: `<svg viewBox="0 0 100 100"><rect x="15" y="60" width="70" height="18" rx="4" fill="#455A64"/><circle cx="25" cy="69" r="2" fill="#00E676"/><circle cx="35" cy="69" r="2" fill="#00E676"/><circle cx="45" cy="69" r="2" fill="#00E676"/><line x1="25" y1="60" x2="25" y2="20" stroke="#263238" stroke-width="3"/><line x1="75" y1="60" x2="75" y2="20" stroke="#263238" stroke-width="3"/></svg>`,
+            proyector: `<svg viewBox="0 0 100 100"><rect x="15" y="35" width="70" height="35" rx="6" fill="#78909C"/><circle cx="70" cy="52" r="12" fill="#37474F"/><circle cx="70" cy="52" r="6" fill="#00E5FF"/><rect x="25" y="70" width="10" height="6" fill="#37474F"/><rect x="65" y="70" width="10" height="6" fill="#37474F"/></svg>`,
+            mando: `<svg viewBox="0 0 100 100"><rect x="20" y="35" width="60" height="35" rx="15" fill="#546E7A"/><circle cx="35" cy="52" r="8" fill="#212121"/><polygon points="35,46 35,58 35,52" stroke="#ECEFF1" stroke-width="3"/><circle cx="65" cy="46" r="4" fill="#FF5252"/><circle cx="73" cy="54" r="4" fill="#FFD700"/></svg>`,
+            cables: `<svg viewBox="0 0 100 100"><path d="M20,30 Q40,70 60,30 T100,30" fill="none" stroke="#FF5252" stroke-width="4"/><path d="M10,40 Q35,80 65,40 T90,50" fill="none" stroke="#4CAF50" stroke-width="4"/><rect x="12" y="20" width="10" height="12" fill="#37474F"/><rect x="52" y="20" width="10" height="12" fill="#37474F"/></svg>`,
+            puntero: `<svg viewBox="0 0 100 100"><polygon points="30,20 75,50 52,56 68,85 54,90 38,62 30,68" fill="#212121" stroke="#FFFFFF" stroke-width="3"/></svg>`,
+            pila: `<svg viewBox="0 0 100 100"><rect x="35" y="25" width="30" height="55" rx="4" fill="#FFC107" stroke="#37474F" stroke-width="2"/><rect x="44" y="17" width="12" height="8" fill="#37474F"/><rect x="35" y="25" width="30" height="15" fill="#37474F"/><text x="50" y="65" font-family="Arial" font-size="20" font-weight="bold" fill="white" text-anchor="middle">+</text></svg>`,
+            reloj: `<svg viewBox="0 0 100 100"><rect x="40" y="10" width="20" height="80" fill="#78909C"/><circle cx="50" cy="50" r="30" fill="#37474F" stroke="#263238" stroke-width="3"/><circle cx="50" cy="50" r="25" fill="#FFFFFF"/><line x1="50" y1="50" x2="50" y2="32" stroke="#212121" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="50" x2="65" y2="50" stroke="#212121" stroke-width="2" stroke-linecap="round"/></svg>`
+        };
+
+        const preguntas = [
+            { svg: SVGS.monitor, correcta: 'MONITOR', opciones: ['MONITOR', 'MOUSE', 'TECLADO'] },
+            { svg: SVGS.mouse, correcta: 'MOUSE', opciones: ['IMPRESORA', 'MOUSE', 'CPU'] },
+            { svg: SVGS.teclado, correcta: 'TECLADO', opciones: ['MONITOR', 'CPU', 'TECLADO'] },
+            { svg: SVGS.cpu, correcta: 'CPU', opciones: ['MOUSE', 'MONITOR', 'CPU'] },
+            { svg: SVGS.impresora, correcta: 'IMPRESORA', opciones: ['IMPRESORA', 'TECLADO', 'CÁMARA'] },
+            { svg: SVGS.parlantes, correcta: 'PARLANTES', opciones: ['PARLANTES', 'USB', 'MOUSE'] },
+            { svg: SVGS.auriculares, correcta: 'AURICULARES', opciones: ['TECLADO', 'AURICULARES', 'MONITOR'] },
+            { svg: SVGS.camara, correcta: 'CÁMARA WEB', opciones: ['CÁMARA WEB', 'CPU', 'IMPRESORA'] },
+            { svg: SVGS.usb, correcta: 'MEMORIA USB', opciones: ['MOUSE', 'MONITOR', 'MEMORIA USB'] },
+            { svg: SVGS.laptop, correcta: 'LAPTOP', opciones: ['LAPTOP', 'TECLADO', 'PARLANTES'] },
+            { svg: SVGS.microfono, correcta: 'MICRÓFONO', opciones: ['CPU', 'MICRÓFONO', 'MOUSE'] },
+            { svg: SVGS.disco, correcta: 'DISCO CD', opciones: ['DISCO CD', 'MONITOR', 'IMPRESORA'] },
+            { svg: SVGS.tablet, correcta: 'TABLET', opciones: ['TECLADO', 'TABLET', 'CPU'] },
+            { svg: SVGS.router, correcta: 'ROUTER DE INTERNET', opciones: ['ROUTER DE INTERNET', 'MOUSE', 'MONITOR'] },
+            { svg: SVGS.proyector, correcta: 'PROYECTOR', opciones: ['IMPRESORA', 'PROYECTOR', 'AURICULARES'] },
+            { svg: SVGS.mando, correcta: 'MANDO DE JUEGOS', opciones: ['MANDO DE JUEGOS', 'TECLADO', 'CPU'] },
+            { svg: SVGS.cables, correcta: 'CABLES', opciones: ['CABLES', 'MONITOR', 'MOUSE'] },
+            { svg: SVGS.puntero, correcta: 'PUNTERO / FLECHA', opciones: ['CÁMARA WEB', 'PUNTERO / FLECHA', 'USB'] },
+            { svg: SVGS.pila, correcta: 'BATERÍA / PILA', opciones: ['BATERÍA / PILA', 'LAPTOP', 'PARLANTES'] },
+            { svg: SVGS.reloj, correcta: 'RELOJ INTELIGENTE', opciones: ['MONITOR', 'ROUTER DE INTERNET', 'RELOJ INTELIGENTE'] }
+        ];
+
+        let indicePreguntaActual = 0;
+        let bloqueandoBotones = false;
+
+        function cargarPregunta() {
+            bloqueandoBotones = false;
+            const preguntaActual = preguntas[indicePreguntaActual];
+            document.getElementById('contador').innerText = `Pregunta: ${indicePreguntaActual + 1} / 20`;
+            document.getElementById('contenedor-svg').innerHTML = preguntaActual.svg;
+            
+            const contenedorBotones = document.getElementById('contenedor-botones');
+            contenedorBotones.innerHTML = ''; 
+
+            preguntaActual.opciones.forEach(opcion => {
+                const boton = document.createElement('button');
+                boton.classList.add('btn-opcion');
+                boton.innerText = opcion;
+                boton.onclick = () => verificarRespuesta(opcion, boton);
+                contenedorBotones.appendChild(boton);
+            });
+        }
+
+        function verificarRespuesta(opcionSeleccionada, botonClickeado) {
+            if (bloqueandoBotones) return; 
+            bloqueandoBotones = true;
+
+            const preguntaActual = preguntas[indicePreguntaActual];
+
+            if (opcionSeleccionada === preguntaActual.correcta) {
+                botonClickeado.classList.add('correcto');
+                setTimeout(() => {
+                    indicePreguntaActual++;
+                    if (indicePreguntaActual < preguntas.length) {
+                        cargarPregunta();
+                    } else {
+                        document.getElementById('pantalla-juego').classList.add('oculto');
+                        document.getElementById('pantalla-final').classList.remove('oculto');
+                    }
+                }, 1000);
+            } else {
+                botonClickeado.classList.add('incorrecto');
+                setTimeout(() => {
+                    botonClickeado.classList.remove('incorrecto');
+                    bloqueandoBotones = false; 
+                }, 800);
+            }
+        }
+
+        function reiniciarJuego() {
+            indicePreguntaActual = 0;
+            preguntas.sort(() => Math.random() - 0.5);
+            document.getElementById('pantalla-final').classList.add('oculto');
+            document.getElementById('pantalla-juego').classList.remove('oculto');
+            cargarPregunta();
+        }
+
+        window.onload = () => {
+            preguntas.sort(() => Math.random() - 0.5); 
+            cargarPregunta();
+        };
+    </script>
+</body>
+</html>
